@@ -96,9 +96,9 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:7
 .proof{background:var(--navy);color:rgba(255,255,255,.86);padding:70px 0 64px}
 .proof h2{color:var(--white);font-size:clamp(24px,3.2vw,34px)}
 .proof p.n{margin-bottom:26px;font-size:15.5px}
-.mq{overflow:hidden}
-.mt{display:flex;gap:16px;width:max-content;animation:mq 50s linear infinite}
-.mq:hover .mt{animation-play-state:paused}
+.mq{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.mq::-webkit-scrollbar{display:none}
+.mt{display:flex;gap:16px;width:max-content}
 .mt figure{flex:none;width:200px;height:300px;border-radius:14px;overflow:hidden;border:2px solid rgba(201,162,39,.7);cursor:zoom-in}
 .mt img{width:100%;height:100%;object-fit:cover}
 @keyframes mq{to{transform:translateX(-50%)}}
@@ -426,7 +426,21 @@ addEventListener("load",function(){setTimeout(function(){$("#ld").classList.add(
 var V=[["site7","Handing over sale deed documents to client"],["site1","Site visit · Vision’s Prestige"],["site2","Brochure handover · Vision’s Prestige"],["site3","Family site visit · Vision’s Radiance"],["site4","Evening site visit · Vision’s Prestige"],["site5","Site visit done · Happy clients"],["site6","Thank you for your time and trust"]];
 var strip="",gal="";
 V.forEach(function(v){strip+='<figure class="zoom"><img src="'+P(v[0])+'" alt="'+v[1]+'"></figure>';gal+='<figure class="rv z zoom"><img src="'+P(v[0])+'" alt="'+v[1]+'" loading="lazy"><figcaption>'+v[1]+'</figcaption></figure>'});
-$("#mt").innerHTML=strip+strip;$("#mt2").innerHTML=strip+strip;$("#gal").innerHTML=gal;
+$("#mt").innerHTML=strip+strip+strip;$("#mt2").innerHTML=strip+strip+strip;$("#gal").innerHTML=gal;
+// photo strips: move by themselves, and clients can swipe them with a finger
+function runStrip(mt,speed){var mq=mt.parentNode,pos=0,ready=false,paused=false,last=0,tm;
+  function one(){return mt.scrollWidth/3}
+  function stop(){paused=true;clearTimeout(tm)}
+  function go(){clearTimeout(tm);tm=setTimeout(function(){pos=mq.scrollLeft;paused=false},1600)}
+  ["touchstart","pointerdown"].forEach(function(n){mq.addEventListener(n,stop,{passive:true})});
+  ["touchend","touchcancel","pointerup"].forEach(function(n){mq.addEventListener(n,go,{passive:true})});
+  mq.addEventListener("mouseenter",stop);mq.addEventListener("mouseleave",go);
+  mq.addEventListener("scroll",function(){if(!paused)return;var o=one(),x=mq.scrollLeft;if(!o)return;if(x<o*.5)mq.scrollLeft=x+o;else if(x>=o*1.5)mq.scrollLeft=x-o});
+  (function tick(t){var o=one();if(o>0){if(!ready){pos=o;mq.scrollLeft=pos;ready=true}
+      if(!last)last=t;var dt=Math.min((t-last)/1000,.1);
+      if(!paused){pos+=dt*speed;if(pos>=o*2)pos-=o;mq.scrollLeft=pos}}
+    last=t;requestAnimationFrame(tick)})(0)}
+runStrip($("#mt"),38);runStrip($("#mt2"),34);
 // scroll: progress, nav, back to top, active link
 var secs=["about","recognition","opportunities","visits","process","contact"];
 addEventListener("scroll",function(){var y=scrollY,h=document.documentElement.scrollHeight-innerHeight;
